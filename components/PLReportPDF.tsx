@@ -148,14 +148,13 @@ export default function PLReportPDF({ data, onClose }: PLReportPDFProps) {
           {/* Header */}
           <div className="flex justify-between items-start pb-6 border-b-2 border-forest-900/20">
             <div>
-              <h1 className="text-2xl font-bold font-serif-brand text-forest-900">
-                Shez <span className="text-gold-600 italic">Blooming</span>
-              </h1>
-              <p className="text-[11px] uppercase tracking-[0.2em] font-semibold text-stone-500">
-                Massage & Parlour
-              </p>
-              <p className="text-xs text-forest-700 font-serif-brand italic mt-0.5">
-                Relax • Rejuvenate • Renew
+              <img
+                src="/images/logo.png"
+                alt="Shez Blooming Massage & Parlour"
+                className="h-16 w-auto object-contain mb-1"
+              />
+              <p className="text-xs text-stone-500 mt-0.5">
+                Founder: Subbulakshmi Das | Ph: +91 98765 43210
               </p>
             </div>
             <div className="text-right">

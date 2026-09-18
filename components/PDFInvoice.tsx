@@ -183,23 +183,12 @@ export default function PDFInvoice({ invoice, onClose }: PDFInvoiceProps) {
           {/* Header Banner */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b-2 border-forest-900/20 gap-4">
             <div>
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-forest-700 flex items-center justify-center text-gold-400 font-bold text-lg font-serif-brand">
-                  S
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold font-serif-brand text-forest-900 tracking-tight">
-                    Shez <span className="text-gold-600 italic">Blooming</span>
-                  </h1>
-                  <p className="text-[11px] uppercase tracking-[0.2em] font-semibold text-stone-600">
-                    Massage & Parlour
-                  </p>
-                </div>
-              </div>
-              <p className="text-xs text-forest-700 font-serif-brand italic mt-1.5">
-                Relax • Rejuvenate • Renew
-              </p>
-              <p className="text-xs text-stone-500 mt-0.5">
+              <img
+                src="/images/logo.png"
+                alt="Shez Blooming Massage & Parlour"
+                className="h-16 w-auto object-contain mb-1"
+              />
+              <p className="text-xs text-stone-500 mt-1">
                 Founder: Subbulakshmi Das | Ph: +91 98765 43210
               </p>
             </div>
