@@ -1,0 +1,252 @@
+// Shez Blooming Prisma Database Schema
+// Set provider to "sqlite" for zero-config local run, or "postgresql" for cloud/local Postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  mobile       String   @unique
+  passwordHash String
+  role         String   @default("ADMIN") // ADMIN, STAFF
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model BusinessSettings {
+  id                 String   @id @default("default-settings")
+  businessName       String   @default("Shez Blooming")
+  subTitle           String   @default("Massage & Parlour")
+  slogan             String   @default("Relax • Rejuvenate • Renew")
+  founderName        String   @default("Subbulakshmi Das")
+  mobile             String   @default("+91 98765 43210")
+  whatsapp           String   @default("+91 98765 43210")
+  address            String   @default("Home Service & Parlour, Kerala")
+  workingDays        String   @default("Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday")
+  startHour          String   @default("08:00")
+  endHour            String   @default("20:00")
+  slotDurationMins   Int      @default(30)
+  bufferDurationMins Int      @default(15)
+  invoicePrefix      String   @default("SB-INV-")
+  lowStockThreshold  Int      @default(5)
+  currencySymbol     String   @default("₹")
+  updatedAt          DateTime @updatedAt
+}
+
+model Customer {
+  id           String        @id @default(uuid())
+  name         String
+  mobile       String        @unique
+  whatsapp     String?
+  address      String?
+  landmark     String?
+  notes        String?
+  firstVisit   DateTime?
+  lastVisit    DateTime?
+  visitCount   Int           @default(0)
+  totalSpent   Float         @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  appointments Appointment[]
+  invoices     Invoice[]
+}
+
+model Category {
+  id           String    @id @default(uuid())
+  name         String    @unique
+  slug         String    @unique
+  iconName     String?
+  displayOrder Int       @default(0)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  services     Service[]
+}
+
+model Service {
+  id             String            @id @default(uuid())
+  categoryId     String
+  category       Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  benefits       String?
+  durationMins   Int               @default(45)
+  price          Float
+  isHomeService  Boolean           @default(true)
+  imageUrl       String?
+  isActive       Boolean           @default(true)
+  displayOrder   Int               @default(0)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  materials      ServiceMaterial[]
+  packageItems   PackageItem[]
+  appointmentItems AppointmentItem[]
+  invoiceItems   InvoiceItem[]
+}
+
+model ServiceMaterial {
+  id                String        @id @default(uuid())
+  serviceId         String
+  service           Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  inventoryItemId   String
+  inventoryItem     InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  quantityRequired  Float
+  unit              String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model Package {
+  id             String        @id @default(uuid())
+  title          String
+  slug           String        @unique
+  description    String?
+  price          Float
+  originalPrice  Float?
+  savings        Float?
+  badgeText      String?
+  validUntil     DateTime?
+  isActive       Boolean       @default(true)
+  imageUrl       String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  items          PackageItem[]
+  appointmentItems AppointmentItem[]
+  invoiceItems   InvoiceItem[]
+}
+
+model PackageItem {
+  id        String   @id @default(uuid())
+  packageId String
+  package   Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  serviceId String
+  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+}
+
+model Appointment {
+  id              String            @id @default(uuid())
+  bookingRef      String            @unique
+  customerId      String
+  customer        Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  date            DateTime
+  timeSlot        String
+  durationMins    Int               @default(60)
+  status          String            @default("PENDING") // PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW
+  address         String?
+  landmark        String?
+  notes           String?
+  estimatedAmount Float             @default(0)
+  isHomeService   Boolean           @default(true)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  items           AppointmentItem[]
+  invoices        Invoice[]
+}
+
+model AppointmentItem {
+  id            String       @id @default(uuid())
+  appointmentId String
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  serviceId     String?
+  service       Service?     @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  packageId     String?
+  package       Package?     @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  itemTitle     String
+  price         Float
+}
+
+model Invoice {
+  id             String        @id @default(uuid())
+  invoiceNumber  String        @unique
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  appointmentId  String?
+  appointment    Appointment?  @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  date           DateTime      @default(now())
+  subtotal       Float
+  discountAmount Float         @default(0)
+  travelCharge   Float         @default(0)
+  taxAmount      Float         @default(0)
+  totalAmount    Float
+  paidAmount     Float
+  paymentMethod  String        @default("UPI") // CASH, UPI, CARD, OTHER
+  paymentStatus  String        @default("PAID") // PAID, PARTIALLY_PAID, UNPAID
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  items          InvoiceItem[]
+}
+
+model InvoiceItem {
+  id          String    @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  serviceId   String?
+  service     Service?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  packageId   String?
+  package     Package?  @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  description String
+  quantity    Int       @default(1)
+  unitPrice   Float
+  totalPrice  Float
+}
+
+model InventoryItem {
+  id              String                 @id @default(uuid())
+  name            String
+  category        String                 @default("Consumables")
+  unit            String                 @default("units") // ml, g, units, packs, pcs, etc.
+  openingQuantity Float                  @default(0)
+  currentQuantity Float                  @default(0)
+  minStockLevel   Float                  @default(5)
+  purchasePrice   Float                  @default(0)
+  supplier        String?
+  purchaseDate    DateTime?
+  expiryDate      DateTime?
+  notes           String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  serviceMaterials ServiceMaterial[]
+  transactions     InventoryTransaction[]
+}
+
+model InventoryTransaction {
+  id              String          @id @default(uuid())
+  inventoryItemId String
+  inventoryItem   InventoryItem   @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  type            String          // PURCHASE_STOCK_IN, SERVICE_CONSUMPTION, MANUAL_ADJUSTMENT, DAMAGED_WASTED, EXPIRED, STOCK_CORRECTION
+  quantity        Float           // + or -
+  previousStock   Float
+  newStock        Float
+  unitCost        Float?
+  referenceId     String?         // Invoice ID or PO ref
+  notes           String?
+  date            DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+}
+
+model Expense {
+  id            String          @id @default(uuid())
+  category      String          @default("MISCELLANEOUS") // PRODUCT_PURCHASE, TRAVEL, EQUIPMENT, MARKETING, PACKAGING, TRAINING, UTILITIES, MOBILE_INTERNET, BUSINESS_REGISTRATION, MISCELLANEOUS
+  amount        Float
+  date          DateTime        @default(now())
+  description   String
+  paymentMethod String          @default("UPI")
+  receiptUrl    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
